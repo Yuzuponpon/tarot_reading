@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>タロットカードおみくじ</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background: #0b0c1a;
+      color: #fefefe;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      padding: 16px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .card-area {
+      width: 100%;
+      max-width: 260px;
+      margin: 0 auto 12px;
+      aspect-ratio: 3 / 5;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #f8e07e;
+      color: #333;
+      margin-bottom: 6px;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    #hint {
+      font-size: 13px;
+      color: #ccc;
+      margin-bottom: 12px;
+    }
+
+    .result {
+      margin-top: 12px;
+      text-align: left;
+      background: rgba(15, 19, 40, 0.9);
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    .result h2 {
+      font-size: 16px;
+      margin: 0 0 4px;
+    }
+
+    .result .keyword {
+      font-size: 12px;
+      color: #f8e07e;
+      margin-bottom: 6px;
+    }
+
+    .insta-link {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 14px;
+      text-decoration: none;
+      color: #f8e07e;
+      border-bottom: 1px solid #f8e07e;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>今日の1枚タロット</h1>
+
+    <div class="card-area">
+      <!-- 最初はカード裏の画像などを指定しておく -->
+      <img id="card-image" src="cards/back.png" alt="タロットカード" />
+    </div>
+
+    <button id="start-btn">スタート</button>
+    <p id="hint">スタート → カードをタップすると止まります</p>
+
+    <div id="result" class="result hidden">
+      <h2 id="card-title"></h2>
+      <div id="card-keyword" class="keyword"></div>
+      <p id="card-text"></p>
+      <a
+        id="insta-link"
+        class="insta-link"
+        href="https://www.instagram.com/あなたのアカウント名/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        イラストのInstagramを見る
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // ★ここに16枚分のカード情報を書きます
+    const cards = [
+      {
+        id: "card01",
+        title: "戦車",
+        keyword: "前進・勝利・勢い",
+        image: "cards/card01.png",
+        text: "今のあなたには前に進む力があります。少し不安でも、アクセルを踏んで行動してみて。"
+      },
+      {
+        id: "card02",
+        title: "隠者",
+        keyword: "内省・準備・一人の時間",
+        image: "cards/card02.png",
+        text: "今日はあえて一人の時間を大切にする日。静かな場所で、自分の本音に耳を澄ませてみて。"
+      },
+      // ……この要領で 16枚ぶん追加……
+      // {
+      //   id: "card03",
+      //   title: "〜〜",
+      //   keyword: "キーワード",
+      //   image: "cards/card03.png",
+      //   text: "説明文……"
+      // },
+    ];
+
+    const cardImage = document.getElementById("card-image");
+    const startBtn = document.getElementById("start-btn");
+    const resultBox = document.getElementById("result");
+    const titleEl = document.getElementById("card-title");
+    const keywordEl = document.getElementById("card-keyword");
+    const textEl = document.getElementById("card-text");
+
+    let timer = null;
+    let currentIndex = 0;
+
+    function startRoulette() {
+      if (cards.length === 0) return;
+
+      resultBox.classList.add("hidden"); // 前回の結果を隠す
+      startBtn.disabled = true;
+
+      // 高速でカードを切り替える（80msごと）
+      timer = setInterval(() => {
+        currentIndex = Math.floor(Math.random() * cards.length);
+        cardImage.src = cards[currentIndex].image;
+      }, 80);
+    }
+
+    function stopRoulette() {
+      if (!timer) return; // 動いていなければ何もしない
+
+      clearInterval(timer);
+      timer = null;
+
+      const card = cards[currentIndex];
+      titleEl.textContent = card.title;
+      keywordEl.textContent = card.keyword;
+      textEl.textContent = card.text;
+
+      resultBox.classList.remove("hidden");
+      startBtn.disabled = false;
+    }
+
+    // ボタンでスタート
+    startBtn.addEventListener("click", startRoulette);
+
+    // 画像タップでストップ
+    cardImage.addEventListener("click", stopRoulette);
+  </script>
+</body>
+</html>
